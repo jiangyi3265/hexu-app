@@ -6,6 +6,8 @@
     "dev:h5": "node scripts/run.mjs -p h5 --host 127.0.0.1 --port 4177",
     "build:h5": "node scripts/run.mjs build -p h5",
     "build:mp-weixin": "node scripts/run.mjs build -p mp-weixin",
+    "build:mp-weixin:atomic": "node scripts/build-mp-atomic.mjs",
+    "build:mp-weixin:release": "node scripts/build-mp-atomic.mjs --release",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {

@@ -65,9 +65,19 @@ npm run build:h5
 npm run build:mp-weixin
 ```
 
-H5 输出在 dist/build/h5，小程序输出在 dist/build/mp-weixin。使用微信开发者工具导入后者；需自行配置 manifest.json 的 mp-weixin.appid 和合法 API 域名，正式渠道配置由后端保管。当前 package.json 中遗留的 test 脚本指向尚未提供的 tests 目录，不能将该命令视为已具备的测试套件。
+H5 输出在 dist/build/h5，小程序输出在 dist/build/mp-weixin。使用微信开发者工具导入后者；需自行配置 manifest.json 的 mp-weixin.appid 和合法 API 域名，正式渠道配置由后端保管。运行 `npm test` 执行 `tests/` 中的回归测试；自动化结果和构建成功不代替真实页面验收。
 
 H5 本地联调无需 .env；部署时将 .env.example 复制为 .env.production，设置公开的 VITE_HEXU_API 地址，再构建。该变量会进入客户端，禁止填写密钥。生产 H5 同源部署时也可保留空值，由服务器转发 /hexu。
+
+微信小程序本地联调用 `npm run build:mp-weixin`；需要固定版本进行测试时用 `npm run build:mp-weixin:atomic`。正式发布必须用 `npm run build:mp-weixin:release`，并先设置 `VITE_HEXU_API` 为可从微信访问的公网 HTTPS 接口源站（不含 `/hexu` 路径）。正式命令会先在独立目录完成构建与 WXML/WXSS 校验，再发布到 `dist/releases/mp-weixin/<版本号>`，请导入输出的版本目录，不要覆盖开发者工具正在打开的旧目录。发布构建会拒绝空值、HTTP、localhost 和内网地址，避免把 `127.0.0.1:8088` 打进正式包。还需在微信公众平台配置对应的 request、downloadFile、uploadFile 合法域名；本地开发者工具展示成功不能替代真机发布验收。
+
+### 本地模拟与正式渠道复测
+
+登录页仅保留微信登录，手机号仍可用于收货地址和其他业务联系方式。本机开发包通过既有 `/hexu/dev/login` 登录开发账号，页面显示“开发环境登录，不调用微信授权”。明确点击“进入浏览”会清除本地会员会话，刷新后继续游客浏览，会员操作仍要求登录。
+
+后端的 `hexu-dev` 配合 `hexu.sandbox.enabled=true` 用于缺配置时的本地流程模拟。七份协议正文由后端本地初始化或迁移脚本发布；未发布时客户端不能以占位协议代替。模拟资金结果仍带 `sandbox` / `SANDBOX-` 标识，不能作为真实微信、资金到账或承运商验收记录。
+
+配置齐全后关闭 `hexu.sandbox.enabled`，以正式 profile 启动后端，设置公网 HTTPS `VITE_HEXU_API` 并重新执行发布构建。正式上线前需将后端 `policies/operator-info.json` 中的占位主体资料换成真实登记信息，升级协议版本并重新发布，同时核实商城公示信息、客服渠道、真实授权及外部回执。原生复测应导入完整的同一次构建；不要混用 HBuilder 增量生成文件和 CLI 构建的 WXML/WXSS/JS。
 
 ## 项目结构
 

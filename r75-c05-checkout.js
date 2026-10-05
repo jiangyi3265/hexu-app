@@ -1,0 +1,11 @@
+const {launcher}=require('miniprogram-automator')
+const pause=ms=>new Promise(r=>setTimeout(r,ms))
+;(async()=>{let mp=await launcher.connectTool({wsEndpoint:'ws://127.0.0.1:9450'});try{
+ let p=await mp.currentPage(),root=(await p.$$(' *'.trim()))[1];console.log('before',p.path)
+ let submit=await root.$('.bottom-bar button.primary')
+ await submit.tap();await pause(700)
+ console.log('unconsented',await mp.evaluate(()=>{let b=require('data/backend.js').backend;return{order:b.activeOrder?.id,member:b.member?.id}}))
+ await(await root.$('.consent')).tap()
+ await submit.tap();await submit.tap();await pause(2000)
+ p=await mp.currentPage();root=(await p.$$(' *'.trim()))[1];console.log('after',p.path,(await root.outerWxml()).slice(0,6800));console.log('state',await mp.evaluate(()=>{let b=require('data/backend.js').backend;return{order:b.activeOrder?.id,member:b.member?.id,shop:b.shopId}}))
+}finally{await mp.disconnect()}})().catch(e=>{console.error(e);process.exitCode=1})

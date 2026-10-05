@@ -1,0 +1,28 @@
+const { launcher } = require('miniprogram-automator')
+const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
+const view = async mp => { const p = await mp.currentPage(); const root = (await p.$$(' *'.trim()))[1]; return {p, root, w: await root.outerWxml()} }
+;(async () => {
+  const mp = await launcher.connectTool({wsEndpoint:'ws://127.0.0.1:9450'})
+  try {
+    let x = await view(mp)
+    console.log('start',x.p.path,x.w.includes('可用120积分'))
+    await (await x.root.$('input[aria-label="接收人手机号"]')).input('13800005056')
+    await (await x.root.$('input[aria-label="转赠积分"]')).input('0')
+    await (await x.root.$('.bottom-bar button')).tap()
+    await pause(700)
+    x = await view(mp)
+    console.log('zero',x.p.path,x.w.match(/<input[^>]*转赠积分[^>]*>/)?.[0])
+    await (await x.root.$('input[aria-label="转赠积分"]')).input('20')
+    await (await x.root.$('.bottom-bar button')).tap()
+    await pause(1100)
+    x = await view(mp)
+    console.log('confirm',x.p.path,x.w.slice(0,6500))
+    let button = await x.root.$('.bottom-bar button')
+    if (!button) button = await x.root.$('button.primary')
+    await button.tap()
+    await pause(1800)
+    x = await view(mp)
+    console.log('result',x.p.path,x.w.slice(0,8500))
+    console.log('account',await mp.evaluate(()=>{const b=require('data/backend.js').backend;return{member:b.member?.id,shopId:b.shopId,platform:b.account?.platformPoints?.available,shop:b.account?.shopPoints?.available,receipt:b.state?.lastTransferReceipt}}))
+  } finally { await mp.disconnect() }
+})().catch(e=>{console.error(e);process.exitCode=1})
