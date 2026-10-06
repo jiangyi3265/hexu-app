@@ -16,7 +16,7 @@ function fixture(){
  }
  const sandbox={reactive:value=>value,state,products:[],persist:()=>{},toast:message=>toasts.push(message),navigate:()=>{},uni,getCurrentPages:()=>[],URLSearchParams,location:{search:'',hash:''},Date,Math,Promise,setTimeout,clearTimeout}
  vm.createContext(sandbox)
- vm.runInContext(source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,'({DEV:true,VITE_HEXU_API:""})')+'\nglobalThis.api={backend,request,apiCommand,enterGuestBrowsing,syncCart,syncFavorites,loadMarketingBuyer,handleRemote,marketingPreviewPayload}',sandbox)
+ vm.runInContext(source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,'({DEV:true,VITE_HEXU_API:"http://127.0.0.1:8088"})')+'\nglobalThis.api={backend,request,apiCommand,enterGuestBrowsing,syncCart,syncFavorites,loadMarketingBuyer,handleRemote,marketingPreviewPayload}',sandbox)
  const {backend}=sandbox.api
  Object.assign(backend,{ready:true,guest:false,shopId:2,token:'token-a',member:{id:701}})
  const respond=(index,status,data={})=>{

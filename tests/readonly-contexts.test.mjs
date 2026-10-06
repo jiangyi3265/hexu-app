@@ -36,7 +36,7 @@ function fixture({decoration={},promotions=[],refunds=[],orders={},listedOrders=
  const uni={getStorageSync:key=>storage.get(key),setStorageSync:(key,value)=>storage.set(key,value),removeStorageSync:key=>storage.delete(key),request:options=>{try{options.success({statusCode:200,data:{code:200,data:plain(response(options.url,options.data,options.method))}})}catch(error){options.success({statusCode:400,data:{code:400,msg:error.message}})}}}
  const sandbox={...helpers,reactive:x=>x,state,products,persist:()=>{},toast:x=>toasts.push(x),navigate:()=>{},money:x=>(Number(x)/100).toFixed(2),uni,getCurrentPages:()=>[],URLSearchParams,Date,Math,Promise,setTimeout,clearTimeout}
  vm.createContext(sandbox)
- const transformed=source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,'({DEV:true,VITE_HEXU_API:""})')
+ const transformed=source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,'({DEV:true,VITE_HEXU_API:"http://127.0.0.1:8088"})')
  vm.runInContext(transformed+'\nglobalThis.functions={backend,pageData,liveBlocks,handleRemote}',sandbox)
  vm.runInContext(catalog.replace(/export /g,'')+screens.replace(/^import .*$/mg,'').replace(/export /g,'')+'\nglobalThis.screenData=screens',sandbox)
  const {backend,pageData,liveBlocks,handleRemote}=sandbox.functions

@@ -23,7 +23,7 @@ function build(output, apiOrigin) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [UNI_CLI, 'build', '-p', 'mp-weixin'], {
       cwd: ROOT,
-      env: { ...process.env, ...(apiOrigin ? { VITE_HEXU_API: apiOrigin } : {}), UNI_INPUT_DIR: ROOT, UNI_OUTPUT_DIR: output },
+      env: { ...process.env, VITE_HEXU_API: apiOrigin || process.env.VITE_HEXU_API || 'http://127.0.0.1:8088', UNI_INPUT_DIR: ROOT, UNI_OUTPUT_DIR: output },
       stdio: 'inherit',
     })
     const stop = () => child.kill('SIGTERM')
@@ -48,6 +48,20 @@ async function filesUnder(directory, relative = '') {
     else throw new Error(`构建包含非普通文件：${name}`)
   }
   return files
+}
+
+async function omitUnusedDesignBoards(directory) {
+  const assets = path.resolve(directory, 'static', 'design')
+  if (path.relative(path.resolve(directory), assets) !== path.join('static', 'design')) {
+    throw new Error('设计素材目录越界')
+  }
+  const files = await filesUnder(directory)
+  if (!files.some(name => name.startsWith('static/design/'))) return
+  for (const name of files.filter(name => /\.(?:js|json|wxml|wxss|css)$/.test(name))) {
+    const content = await fs.readFile(path.join(directory, name), 'utf8')
+    if (content.includes('static/design/')) throw new Error(`页面仍引用设计素材：${name}`)
+  }
+  await fs.rm(assets, { recursive: true })
 }
 
 function scopes(content) {
@@ -95,6 +109,7 @@ async function main() {
   let renamed = false
   try {
     await build(temporary, apiOrigin)
+    await omitUnusedDesignBoards(temporary)
     const result = await verifyAndManifest(temporary)
     // 新版本名不复用；校验完成后只做一次同卷目录改名。
     try { await fs.lstat(published); throw new Error(`版本目录已存在：${published}`) }

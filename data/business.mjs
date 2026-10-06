@@ -18,7 +18,8 @@ export function withdrawalAccountLabel(documents){
  if(body.channel==='BANK')return String(body.masked||[body.bankName,body.bank].filter(Boolean).join(' ')).trim()||'银行卡账户待核对'
  return '结算账户资料待核对'
 }
-export function withdrawalOutcome(status,net){
+export function withdrawalOutcome(status,net,demo=false){
+ if(status==='PAID'&&demo)return {body:'演示到账，未发生真实转账',actual:'演示 ¥'+(net/100).toFixed(2)}
  if(status==='PAID')return {body:'渠道已确认实际付款',actual:'¥'+(net/100).toFixed(2)}
  if(status==='REJECTED'||status==='FAILED')return {body:'冻结金额已退回可提现余额',actual:'未到账'}
  if(status==='PROCESSING')return {body:'付款处理中，到账以渠道结果为准',actual:'尚未确认'}

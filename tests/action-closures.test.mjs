@@ -94,7 +94,7 @@ function fixture({decoration={},documents={},agent=null,context,responses={},fai
   if(pageStack){uni.navigateBack=options=>routeActions.push({type:'back',delta:options.delta});uni.redirectTo=options=>routeActions.push({type:'redirect',url:options.url})}
    const sandbox={...profileHelpers,...paymentHelpers,...complianceHelpers,...reviewHelpers,...supportHelpers,...afterSaleHelpers,...timeHelpers,...cartHelpers,...businessHelpers,...storefrontHelpers,...catalogEditorHelpers,...wholesaleHelpers,isValidRegion,sandboxMemberId,financePage,settlementInputKey,signedCurrency,financeActor,notificationText,notificationTemplateForEditor,notificationTemplateForSave,inventoryReasonLabel,inventoryMatchesFilter,inventoryDeltaLabel,managementSnapshotDetails,managementOrderNotice,reactive:value=>value,state,products,persist:()=>{},toast:message=>toasts.push(message),navigate:page=>navigations.push(page),money:value=>(Number(value)/100).toFixed(2),uni,getCurrentPages:()=>pageStack||[],URLSearchParams,location:{search:h5Search,hash:''},Date,Math,Promise,setTimeout,clearTimeout}
   vm.createContext(sandbox)
-  const transformed=source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,'({DEV:true,VITE_HEXU_API:""})').replace("let apiBase=({DEV:true,VITE_HEXU_API:\"\"}).VITE_HEXU_API||''",remoteLogin?"let apiBase='https://api.example.test'":"let apiBase=''" )
+  const transformed=source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,remoteLogin?'({DEV:true,VITE_HEXU_API:"https://api.example.test"})':'({DEV:true,VITE_HEXU_API:"http://127.0.0.1:8088"})')
   vm.runInContext(transformed+'\nglobalThis.api={backend,pageData,handleRemote,selectOrder,liveBlocks,finishPaidOrder,loadProfile,authorizeProfilePhone,claimCoupon,validateCheckoutCoupon,refresh,rememberLoginReturn,clearLoginReturn,enterGuestBrowsing,setDefaultAddress,removeSavedAddress}',sandbox)
   vm.runInContext(catalog.replace(/export /g,'')+screens.replace(/^import .*$/mg,'').replace(/export /g,'')+'\nglobalThis.screenData=screens',sandbox)
   const {backend,pageData,handleRemote,selectOrder,liveBlocks,finishPaidOrder,loadProfile,authorizeProfilePhone,claimCoupon,validateCheckoutCoupon,refresh,rememberLoginReturn,clearLoginReturn,enterGuestBrowsing,setDefaultAddress,removeSavedAddress}=sandbox.api
@@ -2762,6 +2762,17 @@ test('未选择游客的本地开发首页仍按原方式建立测试会话',asy
  assert.equal(f.backend.guest,false);
  assert.equal(f.requests.some(r=>r.url.endsWith('/dev/login')),true);
  assert.equal(f.storage.has('hexu-guest-browse'),false);
+})
+
+test('HBuilder 开发包连接线上服务时，未登录首页直接游客浏览且不弹登录提示',async()=>{
+ const f=fixture({remoteLogin:true,responses:{'/guest/products':[{id:'sku-real',name:'公开商品',price:1000}],'/storefront':{decoration:{},pages:{},categories:[]}}})
+ f.backend.ready=false;f.backend.token=''
+ await f.pageData('M03',{})
+ assert.equal(f.backend.guest,true)
+ assert.equal(f.backend.ready,false)
+ assert.equal(f.toasts.length,0)
+ assert.equal(f.requests.some(r=>r.url.endsWith('/dev/login')||r.url.endsWith('/bootstrap')),false)
+ assert.equal(f.products[0].id,'sku-real')
 })
 
 test('本地包显式测试会员可从游客首页切入本人会话，手动游客选择仍优先',async()=>{

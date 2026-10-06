@@ -65,11 +65,13 @@ npm run build:h5
 npm run build:mp-weixin
 ```
 
-H5 输出在 dist/build/h5，小程序输出在 dist/build/mp-weixin。使用微信开发者工具导入后者；需自行配置 manifest.json 的 mp-weixin.appid 和合法 API 域名，正式渠道配置由后端保管。运行 `npm test` 执行 `tests/` 中的回归测试；自动化结果和构建成功不代替真实页面验收。
+H5 输出在 dist/build/h5。`npm run build:mp-weixin` 的 dist/build/mp-weixin 是连接本机 Java 的联调包；不要将它上传给客户。HBuilder X 从本项目源码运行或发行微信小程序时，接口指向 `https://fenxiao.oksja.cn`。需在微信公众平台配置合法 API 域名，正式渠道配置由后端保管。运行 `npm test` 执行 `tests/` 中的回归测试；自动化结果和构建成功不代替真实页面验收。
 
 H5 本地联调无需 .env；部署时将 .env.example 复制为 .env.production，设置公开的 VITE_HEXU_API 地址，再构建。该变量会进入客户端，禁止填写密钥。生产 H5 同源部署时也可保留空值，由服务器转发 /hexu。
 
-微信小程序本地联调用 `npm run build:mp-weixin`；需要固定版本进行测试时用 `npm run build:mp-weixin:atomic`。正式发布必须用 `npm run build:mp-weixin:release`，并先设置 `VITE_HEXU_API` 为可从微信访问的公网 HTTPS 接口源站（不含 `/hexu` 路径）。正式命令会先在独立目录完成构建与 WXML/WXSS 校验，再发布到 `dist/releases/mp-weixin/<版本号>`，请导入输出的版本目录，不要覆盖开发者工具正在打开的旧目录。发布构建会拒绝空值、HTTP、localhost 和内网地址，避免把 `127.0.0.1:8088` 打进正式包。还需在微信公众平台配置对应的 request、downloadFile、uploadFile 合法域名；本地开发者工具展示成功不能替代真机发布验收。
+本次服务器发布地址已写入 `.env.production` 和 `.env.production.example`：`https://fenxiao.oksja.cn`。构建后的 H5 与微信小程序通过该域名访问 `/hexu/` 接口。
+
+用 HBuilder X 发布体验版时，打开 `fenxiao-app` 源码项目，选择“发行 → 小程序-微信”，然后在微信开发者工具打开并上传 `unpackage/dist/build/mp-weixin`。通过“运行到微信开发者工具”打开的 `unpackage/dist/dev/mp-weixin` 是开发包，不要从该项目窗口点击上传；普通 `npm run build:mp-weixin` 也只是连接本机 Java 的联调包。也可以用 `npm run build:mp-weixin:release` 生成经校验的独立版本目录 `dist/releases/mp-weixin/<版本号>`。无论采用哪种方式，上传前核对接口域名为 `https://fenxiao.oksja.cn`、AppID 为 `wxe785c7b931bb0fe3`，并在微信公众平台配置对应的 request、downloadFile、uploadFile 合法域名；开发者工具中的 `urlCheck: false` 不代表手机体验版免校验。
 
 ### 本地模拟与正式渠道复测
 

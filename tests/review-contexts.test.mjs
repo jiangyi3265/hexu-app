@@ -31,7 +31,7 @@ function fixture({purchase=order,otherPurchases=[],reviewContext=context,reviewC
   o.success({statusCode:200,data:{code:200,data:plain(data)}});
  },uploadFile:o=>{uploads.push(plain(o.formData));o.success({data:JSON.stringify({code:200,data:{id:file}})})}};
  const sandbox={...helpers,reactive:value=>value,state,products,persist:()=>{},toast:s=>toasts.push(s),navigate:s=>navigations.push(s),money:n=>(Number(n)/100).toFixed(2),uni,getCurrentPages:()=>[],URLSearchParams,location:{search:'',hash:''},Date,Math,Promise,setTimeout,clearTimeout};vm.createContext(sandbox);
- vm.runInContext(source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,'({DEV:true,VITE_HEXU_API:""})')+'\nglobalThis.api={backend,pageData,handleRemote,liveBlocks,uploadAttachment,selectOrder}',sandbox);
+ vm.runInContext(source.replace(/^import .*$/mg,'').replace(/export\s*\{[^}]*\}/g,'').replace(/export /g,'').replace(/import\.meta\.env/g,'({DEV:true,VITE_HEXU_API:"http://127.0.0.1:8088"})')+'\nglobalThis.api={backend,pageData,handleRemote,liveBlocks,uploadAttachment,selectOrder}',sandbox);
  Object.assign(sandbox.api.backend,{ready:true,shopId:2,catalogShopId:2,token:'real-test-token',member,shopInfo:shop,account});
  return {...sandbox.api,state,reads,writes,uploads,toasts,navigations,delayedReviews,setReviewError:value=>{reviewError=value},delayReviewReads:()=>{delayReviews=true},resolveReview:(index,error='')=>{const held=delayedReviews[index];assert.ok(held);held.request.success(error?{statusCode:400,data:{code:400,msg:error}}:{statusCode:200,data:{code:200,data:plain(held.data)}})}};
 }
