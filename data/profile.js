@@ -15,6 +15,7 @@ export function profilePayload(form, today = localDate()) {
   const rawName = field(form, 'name'), name = rawName.trim()
   const signature = field(form, 'signature'), gender = field(form, 'gender'), birthday = field(form, 'birthday')
   const avatarId = field(form, 'avatarId')
+  const contactPhone = field(form, form.contactPhone === undefined ? 'phone' : 'contactPhone').trim()
   if (!Array.isArray(form.region)) throw new Error('所在地区须通过地区选择器提交')
   const region = [...form.region]
   if (!name || length(name) > 20 || /[\u0000-\u001f\u007f-\u009f]/.test(rawName)) throw new Error('昵称请输入1–20个字符，不能包含换行或控制字符')
@@ -26,11 +27,13 @@ export function profilePayload(form, today = localDate()) {
   }
   if (region.length && !isValidRegion(region)) throw new Error('请选择有效的省、市、区')
   if (avatarId && !/^FILE[0-9a-f]{32}$/.test(avatarId)) throw new Error('头像上传尚未完成，请重新选择')
-  return {name, gender, birthday, region, signature, avatarId}
+  if (contactPhone && !/^1[3-9][0-9]{9}$/.test(contactPhone)) throw new Error('请输入11位有效的手机号')
+  return {name, contactPhone, gender, birthday, region, signature, avatarId}
 }
 
 export function hydrateProfile(form, profile) {
   for (const key of ['name', 'phone', 'gender', 'birthday', 'signature', 'avatarId']) form[key] = profile?.[key] || ''
+  form.contactPhone = profile?.contactPhone ?? profile?.phone ?? ''
   form.region = Array.isArray(profile?.region) ? [...profile.region] : []
   form._hydrated = true
 }
@@ -38,7 +41,7 @@ export function hydrateProfile(form, profile) {
 export function profileFields(today = localDate()) {
   return [
     {label:'昵称', key:'name', kind:'input', required:true, maxlength:20},
-    {label:'手机号', key:'phone', kind:'phone'},
+    {label:'联系手机号', key:'contactPhone', kind:'phone', maxlength:11},
     {label:'性别', key:'gender', kind:'select', options:['未填写','女','男','不透露'], emptyLabel:'未填写', clearable:true},
     {label:'生日', key:'birthday', kind:'date', start:'1900-01-01', end:today, clearable:true},
     {label:'所在地区', key:'region', kind:'region'},

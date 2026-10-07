@@ -8,10 +8,18 @@ test('生日边界统一按上海业务日期，不依赖设备所在时区',()=
  assert.equal(localDate(new Date('2026-09-26T15:59:59Z')),'2026-09-26')
  assert.equal(localDate(new Date('2026-09-26T16:00:00Z')),'2026-09-27')
 })
-test('资料提交白名单不包含手机、页面私有字段和临时头像路径', () => {
+test('资料提交只包含联系手机号，不修改已验证的账号手机号', () => {
   const value = profilePayload({...base, name:' 林小禾 ', uploads:['private'], _hydrated:true})
-  assert.deepEqual(Object.keys(value), ['name','gender','birthday','region','signature','avatarId'])
+  assert.deepEqual(Object.keys(value), ['name','contactPhone','gender','birthday','region','signature','avatarId'])
   assert.equal(value.name, '林小禾')
+  assert.equal(value.contactPhone, base.phone)
+})
+test('联系手机号可留空，只接受规范的11位中国大陆手机号', () => {
+  assert.equal(profilePayload({...base,contactPhone:' 13900139000 '}).contactPhone,'13900139000')
+  assert.equal(profilePayload({...base,contactPhone:''}).contactPhone,'')
+  for(const contactPhone of ['12345678901','12900139000','1390013900','139001390000','13900139a00','１３９００１３９０００',null]){
+    assert.throws(()=>profilePayload({...base,contactPhone}),String(contactPhone))
+  }
 })
 test('昵称及签名按Unicode字符校验长度，不接受空昵称', () => {
   for (const name of ['', ' ', '林'.repeat(21)]) assert.throws(()=>profilePayload({...base,name}))
@@ -43,7 +51,7 @@ test('地区结构和字符校验；性别头像必须有效', () => {
 })
 test('个人资料每个可选字段的清空与上限符合保存契约', () => {
   const cleared=profilePayload({...base,gender:'',birthday:'',region:[],signature:'',avatarId:''})
-  assert.deepEqual(cleared,{name:'林小禾',gender:'',birthday:'',region:[],signature:'',avatarId:''})
+  assert.deepEqual(cleared,{name:'林小禾',contactPhone:base.phone,gender:'',birthday:'',region:[],signature:'',avatarId:''})
   assert.equal(profilePayload({...base,name:'禾'}).name,'禾')
   assert.equal(profilePayload({...base,signature:'🌿'.repeat(100)}).signature,'🌿'.repeat(100))
   assert.equal(profilePayload({...base,region:['北京市','朝阳区']}).region.length,2)
@@ -53,7 +61,8 @@ test('个人资料每个可选字段的清空与上限符合保存契约', () =>
   const fields=Object.fromEntries(profileFields('2026-09-27').map(item=>[item.key,item]))
   assert.equal(fields.name.maxlength,20)
   assert.equal(fields.signature.maxlength,100)
-  assert.equal(fields.phone.kind,'phone')
+  assert.equal(fields.contactPhone.kind,'phone')
+  assert.equal(fields.contactPhone.maxlength,11)
   assert.equal(fields.birthday.start,'1900-01-01')
   assert.equal(fields.birthday.end,'2026-09-27')
   assert.equal(fields.region.kind,'region')
@@ -85,7 +94,7 @@ test('资料字段类型与 Java 契约一致，异常表单不能静默清空�
 })
 test('缺失字段不回填样例资料；回显地区与原对象隔离', () => {
   const form={name:'假资料',region:['样例']};hydrateProfile(form,{name:'新名字',region:base.region})
-  assert.equal(form.birthday,'');assert.equal(form.signature,'');assert.equal(form.phone,'')
+  assert.equal(form.birthday,'');assert.equal(form.signature,'');assert.equal(form.phone,'');assert.equal(form.contactPhone,'')
   form.region.push('测试');assert.equal(base.region.length,3)
   assert.equal(profileFields('2026-09-27').find(x=>x.key==='birthday').end,'2026-09-27')
 })

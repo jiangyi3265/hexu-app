@@ -30,14 +30,7 @@
         <picker mode="multiSelector" :range="regionPickers[item.key]?.range||[]" :value="regionPickers[item.key]?.indices||[0,0,0]" @columnchange="moveRegion(item,$event)" @change="set(item.key,selectedRegion(regionPickers[item.key],$event.detail.value).join(' '))" @cancel="resetRegion(item)"><view class="picker-value">{{form[item.key]||'请选择'}} <Icon name="chevron" :size="14"/></view></picker>
         <!-- #endif -->
       </view>
-      <view v-else-if="item.kind==='phone'" class="profile-field-control">
-        <!-- #ifdef MP-WEIXIN -->
-        <button class="profile-phone" open-type="getPhoneNumber" :disabled="backend.busy" @getphonenumber="changePhone">{{form[item.key]||'点击授权手机号'}}</button>
-        <!-- #endif -->
-        <!-- #ifdef H5 -->
-        <text class="muted">{{form[item.key]||'请在微信内授权手机号'}}</text>
-        <!-- #endif -->
-      </view>
+      <view v-else-if="item.kind==='phone'" class="profile-field-control profile-phone-control"><input class="profile-phone" :value="form[item.key]" type="number" :maxlength="item.maxlength||11" placeholder="请输入11位手机号" :aria-label="item.label" @input="inputPhone(item.key,$event.detail.value)"/></view>
       <view v-else-if="item.kind==='stepper'" class="stepper"><button aria-label="减少数量" :disabled="item.max===0" @tap="setQuantity(item,-1)">−</button><input :value="form[item.key]" type="number" :maxlength="9" :disabled="item.max===0" @input="inputQuantity(item,$event.detail.value)"/><button aria-label="增加数量" :disabled="item.max===0" @tap="setQuantity(item,1)">+</button></view>
       <text v-else-if="item.kind==='readonly'" class="muted">{{form[item.key]}}</text>
       <textarea v-else-if="item.kind==='textarea'" :value="form[item.key]" :placeholder="'请输入'+item.label" :maxlength="item.maxlength??500" :aria-label="item.label" @input="set(item.key,$event.detail.value)"/>
@@ -116,10 +109,11 @@ import {canApplyAvatarUpload} from '../data/profile'
 import {stepperInput,shiftStepper} from '../data/stepper-input.mjs'
 import {products,money,state,toast} from '../data/store'
 import {orderLineDisplayAmount,refundDisplayAmount,afterSaleStatusLabel,settlement} from '../data/business.mjs'
-import {backend,apiBase,selectOrder,selectRefund,uploadAttachment,authorizeProfilePhone,claimCoupon,validateCheckoutCoupon} from '../data/backend'
+import {backend,apiBase,selectOrder,selectRefund,uploadAttachment,claimCoupon,validateCheckoutCoupon} from '../data/backend'
 const props=defineProps({block:Object,form:Object,filter:String,search:String})
 const emit=defineEmits(['action','update','filter','search'])
 const set=(key,value)=>emit('update',key,value)
+function inputPhone(key,value){const digits=String(value||'').replace(/\D/g,'').slice(0,11);set(key,digits);return digits}
 const selectOption=(item,index)=>{const value=item.options?.[Number(index)];return item.emptyLabel&&value===item.emptyLabel?'':value}
 const componentActive=ref(true)
 const reviewPreview=ref({urls:[],current:0})
@@ -298,14 +292,6 @@ async function previewReview(images,index){
   uni.previewImage({urls,current:urls[target.current],fail:()=>toast('图片预览失败')})
  }catch(e){toast(e.message)}
 }
-async function changePhone(event){
- if(!event.detail?.code||backend.busy)return
- const form=props.form,memberId=backend.member?.id,token=backend.token
- backend.busy=true
- try{await authorizeProfilePhone(event.detail.code,form)}
- catch(e){if(componentActive.value&&props.form===form&&Number(backend.member?.id)===Number(memberId)&&backend.token===token)toast(e.message)}
- finally{backend.busy=false}
-}
 async function selectCoupon(i){const c=coupons.value[i];if(!c||!c.uiAction)return;if(c.uiAction==='select'){if(props.form.coupon===c.id){set('coupon','');return}try{await validateCheckoutCoupon(c.id);set('coupon',toggledCouponId(props.form.coupon,c.id))}catch(e){toast(e.message)}return}if(claimingCoupon.value)return;claimingCoupon.value=c.id;try{await claimCoupon(c.id)}catch(e){toast(e.message)}finally{claimingCoupon.value=''}}
 function move(i,d){const a=[...sortItems.value];[a[i],a[i+d]]=[a[i+d],a[i]];set('sortOrder',a);set('categoryNames',a.join('\n'))}
 const visibleOrders=computed(()=>(props.block.orders||(props.block.management?backend.management.G21||[]:state.orders)).filter(o=>!props.filter||props.filter==='全部'||(props.filter==='售后'?(backend.account.refunds||[]).some(r=>r.order_id===o.id):o.status===props.filter)).filter(o=>!props.search||JSON.stringify(o).includes(props.search)))
@@ -322,8 +308,8 @@ function cancelOrder(o){emit('action','cancel-order:'+o.id)}
 .info-row.is-multiline .row-value{text-align:left;white-space:pre-wrap}
 .upload-photo{width:100%;height:100%;flex:none}
 .profile-field-control{margin-left:auto;max-width:75%;text-align:right}
-.profile-phone{margin:0;padding:0;background:transparent;color:inherit;font-size:inherit;line-height:inherit;text-align:right;border-radius:0}
-.profile-phone::after{border:0}
+.profile-phone-control{width:65%}
+.profile-phone{width:100%;font-size:inherit;text-align:right}
 .review-append{display:flex;flex-direction:column;gap:9px;padding-top:10px;border-top:1px dashed #e8ede4}
 .review-preview-layer{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;background:#111;color:#fff}
 .review-preview-head{height:64px;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex:none;font-size:13px}

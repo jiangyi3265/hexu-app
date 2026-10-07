@@ -179,6 +179,53 @@ test('G07/G08 仅本地沙盒明确就绪时提示可模拟，不提升正式收
  assert.equal(local.blocks('G07').some(b=>b.title==='本地模拟已就绪，正式渠道待配置'),false);
 })
 
+test('G30 在同商城无旧选中时打开首位代理，跨商城选择不串资料',async()=>{
+ const rows=[{id:11,name:'本店代理'}]
+ const responses={'/management/agents':rows,'/management/agent-summary/11':{id:11,name:'本店代理'},'/management/agent-summary/99':{id:99,name:'分页外代理'}}
+ const first=fixture({responses})
+ first.state.selectedAgent=0;first.state.selectedAgentShopId=2
+ assert.equal(await first.pageData('G30',{}),true)
+ assert.equal(first.state.selectedAgent,11)
+ assert.equal(first.backend.agentSummary.name,'本店代理')
+
+ const scoped=fixture({responses})
+ scoped.state.selectedAgent=99;scoped.state.selectedAgentShopId=2
+ assert.equal(await scoped.pageData('G30',{}),true)
+ assert.equal(scoped.backend.agentSummary.name,'分页外代理')
+
+ const otherShop=fixture({responses})
+ otherShop.state.selectedAgent=99;otherShop.state.selectedAgentShopId=3
+ assert.equal(await otherShop.pageData('G30',{}),true)
+ assert.equal(otherShop.backend.agentSummary.name,'本店代理')
+
+ const migrated=fixture({responses,interceptRequest:request=>{
+  if(!request.url.endsWith('/management/agent-summary/99'))return false
+  request.success({statusCode:400,data:{code:400,msg:'记录不存在'}})
+  return true
+ }})
+ migrated.state.selectedAgent=99;migrated.state.selectedAgentShopId=2
+ assert.equal(await migrated.pageData('G30',{}),true)
+ assert.equal(migrated.state.selectedAgent,11)
+ assert.equal(migrated.backend.agentSummary.name,'本店代理')
+})
+
+test('G30 旧代理资料迟到时不覆盖新账号选择',async()=>{
+ const held=[]
+ const f=fixture({responses:{'/management/agents':[{id:11,name:'旧代理'}]},interceptRequest:request=>{
+  if(!request.url.endsWith('/management/agent-summary/11'))return false
+  held.push(request)
+  return true
+ }})
+ f.state.selectedAgent=0;f.state.selectedAgentShopId=2
+ const pending=f.pageData('G30',{})
+ await waitHeld(held)
+ f.backend.member={id:202,name:'新账号'};f.backend.token='new-token'
+ held[0].success(ok({id:11,name:'旧代理'}))
+ assert.equal(await pending,false)
+ assert.equal(f.backend.agentSummary==null,true)
+ assert.equal(f.state.selectedAgent,0)
+})
+
 test('G47 selecting a shop point account accepts numeric IDs from API and storage',()=>{
  const f=fixture()
  f.backend.management.G47=[

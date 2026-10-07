@@ -11,8 +11,16 @@
       <!-- #ifndef H5 -->
       <view v-if="nativeStatusBarHeight" class="native-status-mask" :style="{height:nativeStatusBarHeight+'px'}"/>
       <!-- #endif -->
-      <view v-if="screen.layout!=='login'&&screen.layout!=='home'" :class="['page-header',{'primary-tab-header':isPrimaryTab}]"><button v-if="!isPrimaryTab" class="icon-button" aria-label="返回" @tap="back"><Icon name="back"/></button><view v-else class="icon-button" aria-hidden="true"/><text>{{pageTitle}}</text><button class="icon-button" aria-label="页面目录" @tap="navigate('catalog')"><Icon name="grid" :size="19"/></button></view>
-      <view v-if="screen.layout==='home'" class="store-header"><view class="spread"><view class="store-brand" @tap="screen.dealer&&navigate('M42')">{{decoration.brandName||'禾序商贸'}} <text v-if="!screen.dealer" class="brand-badge">{{decoration.badge||'公司直营'}}</text><view v-else class="dealer-switch"><text class="dealer-name">| {{backend.shopInfo?.name||state.shop}}</text><Icon name="chevron" :size="14" class="dealer-chevron"/></view></view><view class="header-actions"><button class="icon-button" aria-label="购物车" @tap="navigate('M11')"><Icon name="cart"/></button><button class="icon-button" aria-label="客服" @tap="navigate('M29')"><Icon name="headset"/></button></view></view><text class="muted tiny">{{screen.dealer?'◉ '+(backend.shopInfo?.county||'地区待配置'):(decoration.slogan||'正品好货 · 品质生活')}}</text><view class="search-bar" @tap="navigate('M04')"><Icon name="search" :size="17"/><text class="muted">{{screen.dealer?(decoration.dealerSearchPlaceholder||'搜索本店商品'):(decoration.searchPlaceholder||'搜索商品、品牌、生活好物')}}</text></view></view>
+      <view v-if="screen.layout!=='login'&&screen.layout!=='home'" :class="['page-header',{'primary-tab-header':isPrimaryTab}]" :style="nativeHeaderStyle"><button v-if="!isPrimaryTab" class="icon-button" aria-label="返回" @tap="back"><Icon name="back"/></button><view v-else class="icon-button" aria-hidden="true"/><text :style="nativeTitleStyle">{{pageTitle}}</text><view class="icon-button" aria-hidden="true"/></view>
+      <view v-if="screen.layout==='home'" class="store-header"><view class="spread" :style="nativeHeaderStyle"><view class="store-brand" @tap="screen.dealer&&navigate('M42')"><text class="brand-title">{{decoration.brandName||'禾序商贸'}}</text><text v-if="!screen.dealer" class="brand-badge">{{decoration.badge||'公司直营'}}</text><view v-else class="dealer-switch"><text class="dealer-name">| {{backend.shopInfo?.name||state.shop}}</text><Icon name="chevron" :size="14" class="dealer-chevron"/></view></view>
+        <!-- #ifndef MP-WEIXIN -->
+        <view class="header-actions"><button class="icon-button" aria-label="购物车" @tap="navigate('M11')"><Icon name="cart"/></button><button class="icon-button" aria-label="客服" @tap="navigate('M29')"><Icon name="headset"/></button></view>
+        <!-- #endif -->
+      </view><view class="store-meta"><text class="muted tiny">{{screen.dealer?'◉ '+(backend.shopInfo?.county||'地区待配置'):(decoration.slogan||'正品好货 · 品质生活')}}</text>
+        <!-- #ifdef MP-WEIXIN -->
+        <view class="header-actions"><button class="icon-button" aria-label="购物车" @tap="navigate('M11')"><Icon name="cart"/></button><button class="icon-button" aria-label="客服" @tap="navigate('M29')"><Icon name="headset"/></button></view>
+        <!-- #endif -->
+      </view><view class="search-bar" @tap="navigate('M04')"><Icon name="search" :size="17"/><text class="muted">{{screen.dealer?(decoration.dealerSearchPlaceholder||'搜索本店商品'):(decoration.searchPlaceholder||'搜索商品、品牌、生活好物')}}</text></view></view>
       <view :class="['screen-content',{'with-footer':!!screen.footer||specialFooter,'with-nav':screen.nav&&!specialFooter,'cart-content':screen.layout==='cart', 'flush':screen.layout==='login'||screen.layout==='category','category-screen':screen.layout==='category','finance-screen':['G39','G42'].includes(pageId)}]">
         <template v-if="screen.layout==='login'">
           <view class="login-landscape"><Photo asset="loginScene"/></view>
@@ -75,11 +83,12 @@
         </template>
         <template v-else-if="screen.layout==='addresses'"><view v-for="(a,i) in state.addresses" :key="i" class="card address-card"><view class="spread" @tap="selectAddress(i)"><text class="bold">{{a.name}} <text class="muted">{{a.phone}}</text></text><text v-if="a.primary" class="badge">默认</text></view><text class="address-detail" @tap="selectAddress(i)">{{a.region}} {{a.detail}}</text><view class="spread address-actions"><button class="plain" @tap="setDefault(i)"><view :class="['radio',{checked:a.primary}]">{{a.primary?'✓':''}}</view>设为默认</button><view class="inline-actions"><button class="plain" @tap="editAddress(i)"><Icon name="edit" :size="16"/>编辑</button><button class="plain" @tap="removeAddress(i)"><Icon name="trash" :size="16"/>删除</button></view></view></view><view v-if="accountDataReady&&!state.addresses.length" class="empty-state"><Icon name="pin" :size="50"/><text>暂无收货地址</text><text class="small muted">点击下方按钮添加收货地址</text></view></template>
         <template v-else-if="screen.layout==='orders'"><UiBlock :block="{type:'tabs',items:['全部','待付款','待发货','待收货','已完成']}" :form="form" :filter="filter" @filter="filter=$event"/><UiBlock :block="{type:'orderList'}" :form="form" :filter="filter" @action="handle"/></template>
-        <template v-else-if="screen.layout==='profile'"><view class="profile-hero"><view class="profile-card" @tap="navigate('M26')"><view class="avatar"><Photo :asset="avatarAsset(backend.profileMemberId===backend.member?.id?backend.profile?.avatarId:'')" fallback="avatar" :radius="50"/></view><view><text class="profile-name">{{backend.member?.name||'微信用户'}}</text><text class="small">{{backend.member?.phone?.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2')||'手机号待授权'}} · 悦享品质生活</text></view><Icon name="chevron" color="white" :size="18"/></view><view class="profile-metrics"><view @tap="navigate('M50')"><text>{{backend.ready&&state.serverHydrated?state.points:'—'}}</text><text>我的积分</text></view><view @tap="navigate('M55')"><text>{{backend.ready&&state.serverHydrated?availableCouponCount(backend.coupons):'—'}}</text><text>优惠券</text></view><view @tap="navigate('M08')"><text>{{backend.ready&&state.serverHydrated?state.favorites.length:'—'}}</text><text>我的收藏</text></view></view></view><view class="card"><view class="spread" @tap="navigate('M17')"><text class="section-title">我的订单</text><text class="muted small">全部订单 ›</text></view><UiBlock :block="{type:'links',items:[{title:'待付款',icon:'wallet',target:'orders:待付款'},{title:'待发货',icon:'bag',target:'orders:待发货'},{title:'待收货',icon:'truck',target:'orders:待收货'},{title:'售后',icon:'refresh',target:'orders:售后'}]}" :form="form" @action="handle"/></view><view class="agent-invite" @tap="navigate('M33')"><Icon name="team" :size="30"/><view><text class="bold">代理中心</text><text class="tiny">携手禾序 · 共享成长</text></view><text>立即进入 →</text></view><UiBlock :block="{type:'links',items:profileLinks}" :form="form" @action="handle"/><UiBlock :block="{type:'rows',items:[{label:'隐私授权与协议',target:'M27'},{label:'账号注销',target:'M28'}]}" :form="form" @action="handle"/></template>
+        <template v-else-if="screen.layout==='profile'"><view class="profile-hero"><view class="profile-card" @tap="navigate('M26')"><view class="avatar"><Photo :asset="avatarAsset(backend.profileMemberId===backend.member?.id?backend.profile?.avatarId:'')" fallback="avatar" :radius="50"/></view><view><text class="profile-name">{{backend.member?.name||'微信用户'}}</text><text class="small">{{(backend.profileMemberId===backend.member?.id&&backend.profile?backend.profile.contactPhone:backend.member?.phone)?.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2')||'手机号未填写'}} · 悦享品质生活</text></view><Icon name="chevron" color="white" :size="18"/></view><view class="profile-metrics"><view @tap="navigate('M50')"><text>{{backend.ready&&state.serverHydrated?state.points:'—'}}</text><text>我的积分</text></view><view @tap="navigate('M55')"><text>{{backend.ready&&state.serverHydrated?availableCouponCount(backend.coupons):'—'}}</text><text>优惠券</text></view><view @tap="navigate('M08')"><text>{{backend.ready&&state.serverHydrated?state.favorites.length:'—'}}</text><text>我的收藏</text></view></view></view><view class="card"><view class="spread" @tap="navigate('M17')"><text class="section-title">我的订单</text><text class="muted small">全部订单 ›</text></view><UiBlock :block="{type:'links',items:[{title:'待付款',icon:'wallet',target:'orders:待付款'},{title:'待发货',icon:'bag',target:'orders:待发货'},{title:'待收货',icon:'truck',target:'orders:待收货'},{title:'售后',icon:'refresh',target:'orders:售后'}]}" :form="form" @action="handle"/></view><view class="agent-invite" @tap="navigate('M33')"><Icon name="team" :size="30"/><view><text class="bold">代理中心</text><text class="tiny">携手禾序 · 共享成长</text></view><text>立即进入 →</text></view><UiBlock :block="{type:'links',items:profileLinks}" :form="form" @action="handle"/><UiBlock :block="{type:'rows',items:[{label:'隐私授权与协议',target:'M27'},{label:'账号注销',target:'M28'}]}" :form="form" @action="handle"/></template>
         <template v-else-if="screen.layout==='withdrawal'&&accountDataReady"><view class="card"><text class="muted">提现到</text><view class="info-row" @tap="navigate('M48')"><Icon name="wallet"/><text class="flex-one bold">{{withdrawAccountLabel}}</text><Icon name="chevron" :size="16"/></view></view><view class="card withdraw-card"><text class="section-title">提现金额</text><view class="money-input"><text>¥</text><input v-model="form.amount" type="digit" placeholder="0.00" aria-label="提现金额"/></view><view class="spread small"><text class="muted">可提现余额 ¥{{money(state.balance)}}</text><text class="green" @tap="form.amount=money(state.balance)">全部提现</text></view></view><UiBlock :block="{type:'rows',title:'费用明细',items:[{label:'手续费（0.6%）',value:'¥'+money(withdrawQuote.fee||0)},{label:'预计到账',value:'¥'+money(withdrawQuote.net||0)}]}" :form="form"/><UiBlock :block="{type:'notice',title:'提现说明',body:'单次最低1元，手续费0.6%。商城拥有者审核后提交渠道，以实际付款结果为准。',tone:'orange'}" :form="form"/><view class="consent" @tap="form.consent=!form.consent"><view :class="['checkbox',{checked:form.consent}]">{{form.consent?'✓':''}}</view><text>我已阅读并同意《提现服务协议》</text><text class="green" @tap.stop="handle('policy:WITHDRAWAL_AGREEMENT')">查看正文</text></view></template>
         <template v-else-if="screen.layout==='transfer'&&accountDataReady"><UiBlock :block="{type:'options',key:'pointsType',items:['平台积分','商城积分']}" :form="form" @update="update"/><view class="card"><text class="section-title">接收人信息</text><view class="field"><text>手机号</text><input v-model="form.recipient" type="number" placeholder="请输入接收人手机号" aria-label="接收人手机号"/></view><view class="field"><text>接收商城</text><picker :range="receiverShops" disabled><text>{{receiverShops[0]}} ›</text></picker></view></view><view class="card"><text class="section-title">转赠积分</text><input class="points-input" v-model="form.amount" type="number" placeholder="请输入转赠数量" aria-label="转赠积分"/><text class="small muted">可用{{form.pointsType==='商城积分'?state.shopPoints:state.points}}积分 · 单笔最多{{pointTransferLimit}}</text></view><UiBlock :block="{type:'notice',title:'转赠须知',body:'平台积分可跨商城转赠；商城积分仅限本商城用户。确认后不可撤回。'}" :form="form"/></template>
         <view v-if="screen.layout==='checkout'&&accountDataReady&&!selectedLinesReady" class="notice">{{selectedLines.length?'所选商品暂不可售，请返回购物车重新选择':'请先选择结算商品'}}</view>
         <UiBlock v-if="!(screen.layout==='home'&&backend.error&&!backend.ready)" v-for="(block,i) in displayBlocks" :key="pageId+'-'+i+(block.type==='upload'&&pageId==='G46'?(backend.reconciliationLine||''): '')" :block="blockConfig(block)" :form="form" :filter="blockFilter(block)" :search="search" @update="update" @action="handle" @filter="setBlockFilter(block,$event)" @search="search=$event"/>
+        <AgentTreeMobile v-if="pageId==='G30'&&backend.ready&&!backend.pageLoading.G30&&state.selectedAgent" :shop-id="backend.shopId" :agent-id="state.selectedAgent" @select="selectTreeAgent"/>
         <template v-if="screen.layout==='favorites'">
           <UiBlock :block="{type:'productGrid',ids:favoriteTabProducts,orderedIds:filter==='浏览记录',removable:filter!=='浏览记录',includeUnavailable:true,stockStatus:true}" :form="form" @action="handle"/>
           <text v-if="accountDataReady&&!favoriteTabProducts.length" class="empty-text">{{filter==='浏览记录'?'暂无浏览记录，去商城看看吧':'暂无收藏商品，去商城看看吧'}}</text>
@@ -115,6 +124,7 @@
 import {computed,reactive,ref,watch,onBeforeUnmount,onMounted} from 'vue'
 import {onShow,onHide} from '@dcloudio/uni-app'
 import UiBlock from './UiBlock.vue'
+import AgentTreeMobile from './AgentTreeMobile.vue'
 import Icon from './Icon.vue'
 import Photo from './Photo.vue'
 import HomeCarousel from './HomeCarousel.vue'
@@ -139,9 +149,21 @@ import {marketingFooter,purchaseReceiptFooter,unavailableActionFooter} from '../
 import {addressCheckoutPage,backDeltaTo,backDestination} from '../data/address-navigation.mjs'
 const props=defineProps({pageId:{type:String,default:'M02'}})
 const nativeStatusBarHeight=ref(0)
+const nativeMenuInset=ref(0)
+// #ifdef MP-WEIXIN
+nativeMenuInset.value=104
+// #endif
+const nativeHeaderStyle=computed(()=>nativeMenuInset.value?{paddingRight:nativeMenuInset.value+'px'}:{})
+const nativeTitleStyle=computed(()=>nativeMenuInset.value?{maxWidth:`calc(100% - ${nativeMenuInset.value*2}px)`}:{})
 onMounted(()=>{
  // #ifdef MP-WEIXIN
- try{const info=typeof uni.getWindowInfo==='function'?uni.getWindowInfo():uni.getSystemInfoSync();nativeStatusBarHeight.value=Math.max(0,Number(info.statusBarHeight)||0)}catch{}
+  try{
+   const info=typeof uni.getWindowInfo==='function'?uni.getWindowInfo():uni.getSystemInfoSync()
+   nativeStatusBarHeight.value=Math.max(0,Number(info.statusBarHeight)||0)
+   const menu=wx.getMenuButtonBoundingClientRect?.()
+   const windowWidth=Number(info.windowWidth)||Number(info.screenWidth)
+   if(Number.isFinite(menu?.left)&&menu.left>0&&menu.left<windowWidth)nativeMenuInset.value=Math.max(88,windowWidth-menu.left+8)
+  }catch{}
  // #endif
 })
 const pageId=props.pageId,management=pageId.startsWith('G'),index=catalog.findIndex(x=>x.id===pageId)
@@ -164,6 +186,14 @@ watch(()=>backend.storefront?.pages, pages=>{const remote=pages?.screens?.[pageI
 const guestPages=new Set(['M01','M02','M03','M04','M05','M07'])
 function requireLogin(returnPage=pageId){rememberLoginReturn(returnPage);toast('游客可浏览商品；下单和会员功能请先微信登录');storeNavigate('M01')}
 function navigate(id){if(id===pageId)return;if(backend.guest&&!guestPages.has(id)){requireLogin(id);return}if(backend.guest)clearLoginReturn();storeNavigate(id)}
+async function selectTreeAgent(id){
+  const agentId=Number(id),shopId=backend.shopId,memberId=backend.member?.id,token=backend.token
+  state.selectedAgent=agentId;state.selectedAgentShopId=shopId;persist();backend.agentSummary=null
+  try{
+    const summary=await request('/hexu/app/management/agent-summary/'+agentId,{shopId})
+    if(state.selectedAgent===agentId&&backend.shopId===shopId&&backend.member?.id===memberId&&backend.token===token)backend.agentSummary=summary
+  }catch(e){if(state.selectedAgent===agentId&&backend.shopId===shopId)toast(e.message||'读取代理资料失败')}
+}
 function navigateTab(id){
  if(id===pageId)return
  if(backend.guest&&!guestPages.has(id)){requireLogin(id);return}
@@ -431,6 +461,19 @@ async function handle(target){
 <style scoped>
 .page-header>.icon-button{margin:0}
 .primary-tab-header>text{position:absolute;left:50%;transform:translateX(-50%);max-width:calc(100% - 110px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.store-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:1px 0 10px}
+/* #ifdef MP-WEIXIN */
+.store-header>.spread{box-sizing:border-box;min-height:44px}
+.store-header .store-brand{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.store-header .brand-title,.store-header .dealer-name{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.store-header .brand-title{flex:0 1 auto}
+.store-header .dealer-switch{min-width:0;flex:1}
+.store-meta>.tiny{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.store-meta .header-actions{flex-shrink:0;margin-left:auto}
+.page-header{justify-content:flex-start;gap:4px}
+.page-header>text{position:absolute;left:50%;transform:translateX(-50%);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.primary-tab-header>.icon-button:first-child{display:none}
+/* #endif */
 .checkout-remark>textarea{box-sizing:border-box;display:block;width:100%;min-height:96px;text-align:left}
 .policy-overlay{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(15,35,27,.55);padding:20px;box-sizing:border-box}
 .policy-panel{display:flex;flex-direction:column;gap:16px;width:100%;max-width:430px;max-height:calc(100vh - 40px);padding:20px;border-radius:20px;background:#fff;box-sizing:border-box}

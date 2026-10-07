@@ -5,10 +5,17 @@ import {catalog,groups} from '../../data/catalog'
 import {backend} from '../../data/backend'
 import {navigate} from '../../data/store'
 import Icon from '../../components/Icon.vue'
+// #ifdef MP-WEIXIN
+import {onShow} from '@dcloudio/uni-app'
+onShow(()=>uni.reLaunch({url:'/pages/index/index'}))
+// #endif
 const search=ref(''),scope=ref('全部页面')
 const remoteCatalog=computed(()=>Array.isArray(backend.storefront?.pages?.catalog)&&backend.storefront.pages.catalog.length?backend.storefront.pages.catalog:catalog)
 const shownGroups=computed(()=>groups.map((title,i)=>({title,board:i+1,pages:remoteCatalog.value.filter(p=>p.board===i+1&&(!search.value||(p.id+p.title).toLowerCase().includes(search.value.toLowerCase()))&&(scope.value==='全部页面'||(scope.value==='商城与代理'?p.id.startsWith('M'):p.id.startsWith('G'))))})).filter(g=>g.pages.length))
 </script>
 <style scoped>
+/* #ifdef MP-WEIXIN */
+.catalog-page{display:none}
+/* #endif */
 .catalog-page{max-width:1300px;margin:auto;padding:55px 35px;background:#f3f3eb;min-height:100vh}.catalog-brand{display:flex;gap:12px;align-items:center;font-family:SimSun,serif;font-size:25px;color:#214b33;letter-spacing:3px}.catalog-title{display:block;margin-top:40px;font-size:35px;font-weight:600;color:#223f2b}.catalog-subtitle{display:block;color:#84917b;font-size:13px;margin-top:10px}.catalog-search{max-width:520px;background:white;border:1px solid #dce3d3;border-radius:9px;margin-top:25px;padding:14px}.catalog-search input{font-size:13px}.catalog-filters{display:flex;gap:25px;margin:25px 0 35px;font-size:13px;color:#829078}.catalog-filters button{padding:10px 0}.catalog-filters button.active{color:#155641;border-bottom:3px solid #155641}.catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.catalog-group{background:#fff;border-radius:13px;padding:20px;border:1px solid #e4e9dc}.catalog-group-title{display:flex;gap:10px;align-items:center;font-size:15px;font-weight:600;margin-bottom:17px;color:#345335}.catalog-group-title>text:first-child{font-family:Georgia,serif;color:#a7b09c;font-size:27px}.catalog-group>button{display:flex;align-items:center;gap:11px;text-align:left;padding:11px 0;border-top:1px solid #f0f2e9;width:100%;font-size:12px}.page-code{font-size:10px;color:#829875;width:28px;flex-shrink:0}.catalog-end{display:block;font-size:12px;color:#909c85;text-align:center;margin-top:40px}@media(max-width:1000px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.catalog-page{padding:30px 18px}.catalog-grid{grid-template-columns:1fr;gap:14px}.catalog-title{font-size:28px;margin-top:28px}.catalog-subtitle{font-size:11px}.catalog-group{padding:18px}}
 </style>

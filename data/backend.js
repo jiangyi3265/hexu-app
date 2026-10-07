@@ -79,7 +79,7 @@ function clearAccountOrderContext(){
 function clearMemberView(){
  clearAccountOrderContext();backend.ready=false;backend.member=null;backend.agent=null;backend.profile=null;backend.profileMemberId=null;backend.account={};backend.coupons=[];backend.management={};
  backend.shopInfo=null;backend.storefront={decoration:{},pages:{},categories:[]};backend.catalogShopId=null;backend.documents={};backend.supportRecords=[];backend.agentData=null;
- backend.withdrawalDetail=null;backend.managementWithdrawal=null;backend.earningDetail=null;backend.merchant=null;backend.reviews=[];backend.tracking=null;backend.redemptionOrder=null;
+ backend.withdrawalDetail=null;backend.managementWithdrawal=null;backend.earningDetail=null;backend.agentSummary=null;backend.merchant=null;backend.reviews=[];backend.tracking=null;backend.redemptionOrder=null;
  state.serverHydrated=false;state.signedIn=false;state.lastHydratedIdentity=null;state.cart=[];state.orders=[];state.addresses=[];state.favorites=[];state.browseHistory=[];state.notifications=[];
   state.serverCartId=null;state.serverFavoriteId=null;state.couponId=null;state.checkoutPoints=null;state.cartCheckouts={};state.pendingPaymentOrder=null;state.wholesaleContext=null;state.wholesaleDraft=null;state.wholesaleSku=null;backend.wholesaleProducts=[];backend.wholesaleRules=null;
  state.lastRedemption=null;state.lastWithdrawal=null;state.selectedWithdrawal=null;state.selectedEarning=null;state.points=0;state.shopPoints=0;state.balance=0;state.shop='';products.splice(0,products.length);
@@ -238,12 +238,12 @@ export async function refresh(){
  const rethrowCurrent=e=>{if(!backend.token&&backend.error==='登录已失效，请重新登录')throw e;requireCurrent();throw e}
  if(backend.catalogShopId!==backend.shopId){
   if(backend.catalogShopId!=null)state.selectedRefund=null;
-  backend.shopInfo=null;backend.storefront={decoration:{},pages:{},categories:[]};backend.catalogShopId=null;backend.member=null;backend.agent=null;backend.account={};backend.activeOrder=null;backend.refund=null;backend.merchant=null;backend.management={};backend.coupons=[];backend.withdrawalDetail=null;backend.managementWithdrawal=null;backend.earningDetail=null;backend.afterSaleLinks=[];backend.afterSaleCandidates=[];
+  backend.shopInfo=null;backend.storefront={decoration:{},pages:{},categories:[]};backend.catalogShopId=null;backend.member=null;backend.agent=null;backend.account={};backend.activeOrder=null;backend.refund=null;backend.merchant=null;backend.management={};backend.coupons=[];backend.withdrawalDetail=null;backend.managementWithdrawal=null;backend.earningDetail=null;backend.agentSummary=null;backend.afterSaleLinks=[];backend.afterSaleCandidates=[];
   state.shop='';state.orders=[];state.cart=[];state.addresses=[];state.favorites=[];state.browseHistory=[];state.couponId=null;state.lastWithdrawal=null;state.selectedWithdrawal=null;state.selectedEarning=null;state.points=0;state.shopPoints=0;state.balance=0;state.serverCartId=null;state.serverFavoriteId=null;state.serverHydrated=false;products.splice(0,products.length)
  }let data
  try{data=await request('/hexu/app/bootstrap',{shopId},'GET',undefined,memberId)}catch(e){rethrowCurrent(e)}
  requireCurrent() // 旧账号或旧商城的异步响应不得回写全局资料。
- const previousMemberId=backend.member?.id,previousIdentity=state.lastHydratedIdentity;if(previousIdentity&&(Number(previousIdentity.memberId)!==Number(data.member.id)||Number(previousIdentity.shopId)!==Number(data.shop.id)))clearAccountOrderContext();state.lastHydratedIdentity={memberId:Number(data.member.id),shopId:Number(data.shop.id)};backend.member=data.member;if(previousMemberId!=null&&Number(previousMemberId)!==Number(data.member.id)){backend.coupons=[];state.couponId=null;backend.refund=null;state.selectedRefund=null;backend.withdrawalDetail=null;backend.managementWithdrawal=null;backend.earningDetail=null;state.lastWithdrawal=null;state.selectedWithdrawal=null;state.selectedEarning=null}if(state.wholesaleContext&&(Number(state.wholesaleContext.memberId)!==Number(data.member.id)||Number(state.wholesaleContext.shopId)!==Number(backend.shopId))){state.wholesaleContext=null;state.wholesaleSku=null;state.purchaseBoxes=null}if(state.wholesaleDraft&&(Number(state.wholesaleDraft.memberId)!==Number(data.member.id)||Number(state.wholesaleDraft.shopId)!==Number(backend.shopId)))state.wholesaleDraft=null;if(backend.profileMemberId!=null&&Number(backend.profileMemberId)!==Number(data.member.id)){backend.profile=null;backend.profileMemberId=null}backend.shopInfo=data.shop;backend.storefront=data.storefront||{decoration:{},pages:{},categories:[]};backend.catalogShopId=backend.shopId;backend.checkinRewards=data.checkinRewards;backend.agent=data.agent;backend.account=data.account;state.shop=data.shop.name;state.points=Number(data.account.platformPoints.available||0);state.shopPoints=Number(data.account.shopPoints.available||0);state.balance=Number(data.account.wallet.available||0);state.addresses=data.addresses.filter(d=>d.status==='ACTIVE').map(d=>({...d.body,serverId:d.id}));
+ const previousMemberId=backend.member?.id,previousIdentity=state.lastHydratedIdentity;if(previousIdentity&&(Number(previousIdentity.memberId)!==Number(data.member.id)||Number(previousIdentity.shopId)!==Number(data.shop.id))){clearAccountOrderContext();backend.agentSummary=null}state.lastHydratedIdentity={memberId:Number(data.member.id),shopId:Number(data.shop.id)};backend.member=data.member;if(previousMemberId!=null&&Number(previousMemberId)!==Number(data.member.id)){backend.coupons=[];state.couponId=null;backend.refund=null;state.selectedRefund=null;backend.withdrawalDetail=null;backend.managementWithdrawal=null;backend.earningDetail=null;backend.agentSummary=null;state.lastWithdrawal=null;state.selectedWithdrawal=null;state.selectedEarning=null}if(state.wholesaleContext&&(Number(state.wholesaleContext.memberId)!==Number(data.member.id)||Number(state.wholesaleContext.shopId)!==Number(backend.shopId))){state.wholesaleContext=null;state.wholesaleSku=null;state.purchaseBoxes=null}if(state.wholesaleDraft&&(Number(state.wholesaleDraft.memberId)!==Number(data.member.id)||Number(state.wholesaleDraft.shopId)!==Number(backend.shopId)))state.wholesaleDraft=null;if(backend.profileMemberId!=null&&Number(backend.profileMemberId)!==Number(data.member.id)){backend.profile=null;backend.profileMemberId=null}backend.shopInfo=data.shop;backend.storefront=data.storefront||{decoration:{},pages:{},categories:[]};backend.catalogShopId=backend.shopId;backend.checkinRewards=data.checkinRewards;backend.agent=data.agent;backend.account=data.account;state.shop=data.shop.name;state.points=Number(data.account.platformPoints.available||0);state.shopPoints=Number(data.account.shopPoints.available||0);state.balance=Number(data.account.wallet.available||0);state.addresses=data.addresses.filter(d=>d.status==='ACTIVE').map(d=>({...d.body,serverId:d.id}));
  products.splice(0,products.length,...data.products.map(p=>({...p,price:Number(p.price),retailPrice:p.retailPrice==null?null:Number(p.retailPrice),stock:p.stock,desc:p.spec})));
  if(state.lastWithdrawal){const latest=data.account.withdrawals?.find(w=>w.id===state.lastWithdrawal.id);if(latest)state.lastWithdrawal={...latest,cents:latest.amount};}state.orders=data.orders.map(normalizedOrder);
  const route=getCurrentPages().at(-1)?.route||'';
@@ -893,7 +893,25 @@ export async function pageData(id,form){
    if(form._exchangeKey!==key)Object.assign(form,{新发快递:shipped.carrier||'',tracking:shipped.tracking||'',_exchangeKey:key});
   }
   if(id==='G35'&&form){const list=backend.management.G35||[],d=list.find(x=>x.id===backend.selectedDocuments?.G35)||list.find(x=>x.status==='PENDING')||list[0];if(d&&form._scopeId!==d.id){form['有效期至']=new Date(timestamp(d.body.expiresAt)).toLocaleDateString('en-CA');form['可采购数量上限']=d.body.items?.[0]?.qty;form['撤销原因']='';form._scopeId=d.id;}}
-  if(id==='G30'){const rows=backend.management.G30||[],chosen=rows.find(a=>a.id===state.selectedAgent)||rows[0];backend.agentSummary=chosen?await request('/hexu/app/management/agent-summary/'+chosen.id,{shopId:backend.shopId}):null;}
+  if(id==='G30'){
+   const rows=backend.management.G30||[],selected=Number(state.selectedAgent)
+   const context=[backend.member?.id,backend.shopId,backend.token],selectedShop=Number(state.selectedAgentShopId)||0
+   const scoped=selectedShop===Number(backend.shopId)&&selected>0
+   let agentId=Number(scoped?selected:rows.find(a=>Number(a.id)===selected)?.id||rows[0]?.id)||0
+   let summary=null
+   if(agentId){
+    try{summary=await request('/hexu/app/management/agent-summary/'+agentId,{shopId:context[1]})}
+    catch(error){
+     if(error.message!=='记录不存在')throw error
+     const fallback=Number(rows[0]?.id)||0
+     if(fallback===agentId)throw error
+     agentId=fallback
+     if(fallback)summary=await request('/hexu/app/management/agent-summary/'+fallback,{shopId:context[1]})
+    }
+   }
+   if(!sameMemberShop(...context)||Number(state.selectedAgent)!==selected||(Number(state.selectedAgentShopId)||0)!==selectedShop)return false
+   state.selectedAgent=agentId;state.selectedAgentShopId=context[1];backend.agentSummary=summary
+  }
   if(['G43','G44'].includes(id)){
    const selection=state.selectedWithdrawal||'',rows=backend.management[id]||[]
    const chosen=selection?{id:selection}:rows.find(w=>w.status==='PENDING')||rows[0]
@@ -1102,7 +1120,9 @@ export async function handleRemote(target,ctx){const {pageId,form,selectedLines,
   if(pageId==='M26'&&target==='save'){
    if(backend.profileError||!form._hydrated||Number(form._profileMemberId)!==Number(backend.member?.id))throw new Error('请先重新读取个人资料')
    const memberId=backend.member?.id,token=backend.token
-   const profile=await request('/hexu/app/profile',profilePayload(form),'POST',uuid())
+   let profile
+   try{profile=await request('/hexu/app/profile',profilePayload(form),'POST',uuid())}
+   catch(e){if(/个人资料字段不支持[:：]\s*contactPhone/.test(e.message||''))throw new Error('联系手机号暂无法保存，请稍后重试');throw e}
    if(!sameProfileAccount(memberId,token)){form._hydrated=false;toast('原账号资料已保存，请切回原账号核对');return true}
    profileLoadVersion++
    backend.profileError=''
@@ -1202,7 +1222,7 @@ export async function handleRemote(target,ctx){const {pageId,form,selectedLines,
   if(target.startsWith('catalog-review:')){backend.reviewSku=target.slice(15);await pageData(pageId,form);return true}
   if(target.startsWith('freight-select:')){backend.selectedFreight=target.slice(15);form._freightId='';await pageData(pageId,form);return true}
   if(target.startsWith('earning:')){state.selectedEarning=Number(target.slice(8));persist();navigate('M46');return true}
-  if(target.startsWith('agent-select:')){state.selectedAgent=Number(target.slice(13));persist();navigate('G30');return true}
+  if(target.startsWith('agent-select:')){state.selectedAgent=Number(target.slice(13));state.selectedAgentShopId=backend.shopId;persist();navigate('G30');return true}
   if(target.startsWith('customer-select:')){state.selectedCustomer=Number(target.slice(16));persist();return true}
   if(target.startsWith('withdrawal-select:')){state.selectedWithdrawal=target.slice(18);persist();await pageData(pageId,form);return true}
   if(target.startsWith('reversal-order:')){state.reversalOrder=target.slice(15);persist();if(pageId==='G42')await pageData('G42',form);else navigate('G42');return true}
