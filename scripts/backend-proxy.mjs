@@ -18,9 +18,11 @@ function trustedBrowserRequest(req) {
   }
 }
 
-function resolveBackendDir() {
+// 各机器上后端仓库目录名不同；相对 base（默认当前工作目录）按顺序查找，返回绝对路径。
+export function resolveBackendDir(base = process.cwd()) {
   const candidates = [process.env.HEXU_BACKEND_DIR, '../fenxiao-backend', '../hexu-backend', '../RuoYi-Vue'].filter(Boolean)
-  return candidates.find(candidate => fs.existsSync(path.resolve(candidate, 'pom.xml'))) || '../fenxiao-backend'
+  const found = candidates.find(candidate => fs.existsSync(path.resolve(base, candidate, 'pom.xml')))
+  return path.resolve(base, found || '../fenxiao-backend')
 }
 
 export default function backendProxy() {

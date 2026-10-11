@@ -3,6 +3,7 @@ import path from 'node:path'
 import vm from 'node:vm'
 import {fileURLToPath} from 'node:url'
 import {loadPure} from '../tests/helpers/pure-module.mjs'
+import {resolveBackendDir} from './backend-proxy.mjs'
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const catalogSource = fs.readFileSync(path.join(root, 'data/catalog.js'), 'utf8')
@@ -16,6 +17,6 @@ const context = { catalog, profileFields, console }
 vm.createContext(context)
 vm.runInContext(source + '\n;globalThis.__screens=screens', context, { filename: 'screens.js' })
 const output = JSON.stringify({ schemaVersion: 1, catalog, screens: context.__screens })
-const destination = path.resolve(root, '../fenxiao-backend/ruoyi-admin/src/main/resources/hexu-ui-seed.json')
+const destination = path.join(resolveBackendDir(root), 'ruoyi-admin/src/main/resources/hexu-ui-seed.json')
 fs.writeFileSync(destination, output + '\n', 'utf8')
 console.log(`exported ${catalog.length} pages to ${destination}`)

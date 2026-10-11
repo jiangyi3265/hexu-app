@@ -1,9 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {readFileSync} from 'node:fs'
+import path from 'node:path'
+import {fileURLToPath} from 'node:url'
+import {resolveBackendDir} from '../scripts/backend-proxy.mjs'
 
-const seedUrl = new URL('../../fenxiao-backend/ruoyi-admin/src/main/resources/hexu-ui-seed.json', import.meta.url)
-const {screens} = JSON.parse(readFileSync(seedUrl, 'utf8'))
+const appRoot = fileURLToPath(new URL('..', import.meta.url))
+const seedPath = path.join(resolveBackendDir(appRoot), 'ruoyi-admin/src/main/resources/hexu-ui-seed.json')
+const {screens} = JSON.parse(readFileSync(seedPath, 'utf8'))
 
 test('G27 服务端页面标签与验收表单键各司其职', () => {
   const [received, good] = screens.G27.blocks[2].items
