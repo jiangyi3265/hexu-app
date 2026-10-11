@@ -286,7 +286,7 @@ watch(()=>[backend.productSelection,backend.shopId,selectionMemberId.value,state
 const agentPriceLabel=computed(()=>({1:'云代理',2:'分货中心',3:'总代理'}[backend.agent?.rank_no]||'代理')+'专享价')
 const agentRetailPrice=computed(()=>{const retail=currentProduct.value.retailPrice;return Number.isSafeInteger(retail)&&retail>currentProduct.value.price?retail:null})
 const activeOrder=computed(()=>(backend.activeOrder?.id===state.activeOrder?backend.activeOrder:null)||state.orders.find(o=>o.id===state.activeOrder))
-const createdCheckoutOrder=computed(()=>pageId==='M12'&&form._createdOrder?.id===activeOrder.value?.id&&Number(form._createdOrder.memberId)===Number(backend.member?.id)&&Number(form._createdOrder.shopId)===Number(backend.shopId)?activeOrder.value:null)
+const createdCheckoutOrder=computed(()=>pageId==='M12'&&!!form._createdOrder?.id&&form._createdOrder.id===activeOrder.value?.id&&Number(form._createdOrder.memberId)===Number(backend.member?.id)&&Number(form._createdOrder.shopId)===Number(backend.shopId)?activeOrder.value:null)
 const selectedLines=computed(()=>state.buyNow?[state.buyNow]:state.cart.filter(x=>x.selected))
 const checkoutReturnLabel=computed(()=>state.buyNow?.groupId||state.buyNow?.groupCampaignId?'返回拼团页':state.buyNow?'返回修改数量':'返回购物车修改数量')
 const selectableCouponCount=computed(()=>couponCards(backend.coupons,{choose:true,orderSkuIds:selectedLines.value.map(line=>line.id),stackBlocked:!!backend.couponPolicy?.blocked}).filter(coupon=>coupon.uiAction==='select'&&Number(coupon.member_id)===Number(backend.member?.id)&&Number(coupon.shop_id)===Number(backend.shopId)).length)

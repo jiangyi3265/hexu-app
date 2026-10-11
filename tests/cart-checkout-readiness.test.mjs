@@ -49,6 +49,18 @@ test('购物车与确认订单在无效商品或未完成报价时隐藏假金�
   assert.match(screen,/返回修改数量/)
 })
 
+test('确认订单尚未提交且没有当前订单时不读取空的已建订单', async () => {
+  const screen = await readFile(new URL('../components/DesignScreen.vue',import.meta.url),'utf8')
+  const getter = screen.match(/^const createdCheckoutOrder=computed\((\(\)=>.*)\)\r?$/m)?.[1]
+  assert.ok(getter,'未找到确认订单的已建订单判断')
+  const evaluate = (form,activeOrder) => new Function('pageId','form','activeOrder','backend',`return (${getter})()`)('M12',form,{value:activeOrder},{member:{id:201},shopId:2})
+  const order = {id:'HX1'}
+  assert.equal(evaluate({},undefined),null)
+  assert.equal(evaluate({},order),null)
+  assert.equal(evaluate({_createdOrder:{id:'HX1',memberId:201,shopId:2}},order),order)
+  assert.equal(evaluate({_createdOrder:{id:'HX1',memberId:202,shopId:2}},order),null)
+})
+
 test('失效购物车保留商品识别信息但不得据旧快照重新结算', () => {
   const active={id:'sku-1',name:'端测纸巾',spec:'24包装',asset:'cup',price:2000}
   const line={id:active.id,qty:1,selected:true,snapshot:cartProductSnapshot(active)}
