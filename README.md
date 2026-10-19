@@ -71,7 +71,7 @@ H5 本地联调无需 .env；部署时将 .env.example 复制为 .env.production
 
 本次服务器发布地址已写入 `.env.production` 和 `.env.production.example`：`https://fenxiao.oksja.cn`。构建后的 H5 与微信小程序通过该域名访问 `/hexu/` 接口。
 
-用 HBuilder X 发布体验版时，打开 `fenxiao-app` 源码项目，选择“发行 → 小程序-微信”，然后在微信开发者工具打开并上传 `unpackage/dist/build/mp-weixin`。通过“运行到微信开发者工具”打开的 `unpackage/dist/dev/mp-weixin` 是开发包，不要从该项目窗口点击上传；普通 `npm run build:mp-weixin` 也只是连接本机 Java 的联调包。也可以用 `npm run build:mp-weixin:release` 生成经校验的独立版本目录 `dist/releases/mp-weixin/<版本号>`。无论采用哪种方式，上传前核对接口域名为 `https://fenxiao.oksja.cn`、AppID 为 `wxe785c7b931bb0fe3`，并在微信公众平台配置对应的 request、downloadFile、uploadFile 合法域名；开发者工具中的 `urlCheck: false` 不代表手机体验版免校验。
+用 HBuilder X 发布体验版时，打开 `fenxiao-app` 源码项目，选择“发行 → 小程序-微信”，然后在微信开发者工具打开并上传 `unpackage/dist/build/mp-weixin`。通过“运行到微信开发者工具”打开的 `unpackage/dist/dev/mp-weixin` 是开发包，不要从该项目窗口点击上传；普通 `npm run build:mp-weixin` 也只是连接本机 Java 的联调包。也可以用 `npm run build:mp-weixin:release` 生成经校验的独立版本目录 `dist/releases/mp-weixin/<版本号>`。无论采用哪种方式，上传前核对接口域名为 `https://fenxiao.oksja.cn`、AppID 为 `wxbf3e42a2744ca7b2`，并在微信公众平台配置对应的 request、downloadFile、uploadFile 合法域名；开发者工具中的 `urlCheck: false` 不代表手机体验版免校验。AppSecret 仅配置在后端私有环境变量中，不写入小程序源码或构建包。
 
 ### 本地模拟与正式渠道复测
 
