@@ -179,6 +179,17 @@ test('G07/G08 仅本地沙盒明确就绪时提示可模拟，不提升正式收
  assert.equal(local.blocks('G07').some(b=>b.title==='本地模拟已就绪，正式渠道待配置'),false);
 })
 
+test('统一收款模式不再引导经销商提交独立商户资料',()=>{
+ const app=fixture({remoteLogin:true})
+ app.backend.merchant={sharedDirect:true,merchantNo:'1900000001',appId:'wx1234567890abcdef',paymentReady:true}
+ for(const id of ['G07','G08']){
+  const blocks=app.blocks(id)
+  assert.equal(blocks[0].title,'公司统一收款')
+  assert.equal(blocks.find(b=>b.type==='rows').items.find(i=>i.label==='收款商户号').value,'1900000001')
+  assert.equal(blocks.some(b=>b.type==='links'||b.type==='timeline'),false)
+ }
+})
+
 test('G30 在同商城无旧选中时打开首位代理，跨商城选择不串资料',async()=>{
  const rows=[{id:11,name:'本店代理'}]
  const responses={'/management/agents':rows,'/management/agent-summary/11':{id:11,name:'本店代理'},'/management/agent-summary/99':{id:99,name:'分页外代理'}}
